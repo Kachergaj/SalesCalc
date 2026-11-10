@@ -13,8 +13,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Unzip project
-      run: unzip SalesCalc-project.zip
+    - name: Unzip project to separate folder
+      run: |
+        mkdir build_folder
+        unzip -q SalesCalc-bundle.zip -d build_folder
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -22,16 +24,15 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
-
     - name: Build with Gradle
       run: |
-        # Ищем файл gradlew и запускаем сборку из его папки
-        find . -name "gradlew" -exec dirname {} \; | head -n 1 | xargs -I {} sh -c "cd {} && chmod +x gradlew && ./gradlew assembleDebug"
+        cd build_folder
+        if [ -d "SalesCalc" ]; then cd SalesCalc; fi
+        chmod +x gradlew
+        ./gradlew assembleDebug
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: SalesCalc-APK
-        path: "**/build/outputs/apk/debug/*.apk"
+        name: SalesCalc-APK-New
+        path: "build_folder/**/build/outputs/apk/debug/*.apk"
